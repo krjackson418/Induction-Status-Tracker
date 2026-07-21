@@ -323,8 +323,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
     <select id="f-assignee-hidden" onchange="render()"><option value=""></option></select>
     <select id="f-assignee-status" style="display:none"><option value=""></option></select>
     <select id="f-task" onchange="render()"><option value="">All tasks</option></select>
-    <select id="f-sort" onchange="render()"><option value="del-asc" selected>Delivery: Oldest first</option><option value="del-desc">Delivery: Newest first</option><option value="asc">Due: Oldest first</option><option value="desc">Due: Newest first</option><option value="comp-desc">Done date: Newest first</option><option value="comp-asc">Done date: Oldest first</option></select>
-    <select id="f-task-sort" onchange="render()"><option value="">Sort: Default</option><option value="date-asc">Done date: Oldest first</option><option value="date-desc">Done date: Newest first</option></select>
+    <select id="f-sort" onchange="render()"><option value="del-asc" selected>Delivery: Oldest first</option><option value="del-desc">Delivery: Newest first</option><option value="asc">Due: Oldest first</option><option value="desc">Due: Newest first</option><option value="comp-desc">Date Completed: Newest first</option><option value="comp-asc">Date Completed: Oldest first</option></select>
+    <select id="f-task-sort" onchange="render()"><option value="">Sort: Default</option><option value="date-asc">Date Completed: Oldest first</option><option value="date-desc">Date Completed: Newest first</option></select>
     <input id="f-search" type="text" oninput="render()">
     <input id="f-assignee-search" type="text">
     <span id="toolbar-hint"></span>
@@ -385,8 +385,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
             <option value="del-desc">Delivery: Newest first</option>
             <option value="asc">Due: Oldest first</option>
             <option value="desc">Due: Newest first</option>
-            <option value="comp-desc">Done date: Newest first</option>
-            <option value="comp-asc">Done date: Oldest first</option>
+            <option value="comp-desc">Date Completed: Newest first</option>
+            <option value="comp-asc">Date Completed: Oldest first</option>
           </select>
         </div>
 
@@ -451,7 +451,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
             <div class="sb-float-panel-title">Task Status</div>
             <label class="sb-check-row"><input type="checkbox" value="inprogress" onchange="onGlobalTaskStatusChange()"> In Progress</label>
             <label class="sb-check-row"><input type="checkbox" value="pending" onchange="onGlobalTaskStatusChange()"> Pending</label>
-            <label class="sb-check-row"><input type="checkbox" value="done" onchange="onGlobalTaskStatusChange()"> Done</label>
+            <label class="sb-check-row"><input type="checkbox" value="done" onchange="onGlobalTaskStatusChange()"> Completed</label>
             <label class="sb-check-row"><input type="checkbox" value="notready" onchange="onGlobalTaskStatusChange()"> Not Ready</label>
           </div>
         </div>
@@ -621,7 +621,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
       <div class="form-grid">
         <div class="field"><label>Tail # *</label><input id="n-ac" type="text" placeholder="e.g. 7445"></div>
         <div class="field"><label>Fleet type *</label>
-          <select id="n-type" style="font-size:13px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text)">
+          <select id="n-type" onchange="toggleAddMsnField()" style="font-size:13px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text)">
             <option value="">Select type…</option>
             <option>737 MAX 8</option><option>737 MAX 9</option><option>A321neo</option><option>787-9 Hi-J</option><option>787-9</option><option>Neo PS</option><option>XLR</option>
           </select>
@@ -635,6 +635,12 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
         </div>
         <div class="field"><label>Complete-by date (auto +30d)</label>
           <input id="n-due" type="text" readonly value="TBD" style="font-size:13px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text);background:var(--surface2)">
+        </div>
+        <div class="field"><label>Flyaway date</label>
+          <input id="n-flyaway" type="date" style="font-size:13px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text)">
+        </div>
+        <div class="field" id="n-msn-field" style="display:none"><label>MSN</label>
+          <input id="n-msn" type="text" placeholder="e.g. 11024" style="font-size:13px;padding:6px 9px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text)">
         </div>
       </div>
     </div>
@@ -657,7 +663,7 @@ const TASK_COLORS = {
   apu_comp:'maj', apu_peer_audit:'maj', apu_import:'maj',
   lmlg:'maj', lmlg_peer_audit:'maj', rmlg:'maj', rmlg_peer_audit:'maj', nlg:'maj', nlg_peer_audit:'maj',
   eng_import:'maj',
-  final_doc:'arl', final_arl:'arl', final_apu:'maj', final_eng:'maj',
+  final_doc:'arl', final_arl:'arl', htdom_final_review:'arl', final_apu:'maj', final_eng:'maj',
   elt:'airframe', swf:'arl', forecast:'arl', missing:'airframe',
   aw_cert:'arl', installed:'airframe',
   aia_close:'arl', cpap:'arl', airvault:'airframe', baw:'airframe',
@@ -674,7 +680,7 @@ const GROUPS = [
   { name: "Airframe",                            dept: "Airframe",          keys: ["nonad","nonad_ntcs","nonad_insp","nonad_tasks","nonad_checks","nonad_peer_audit","ads","ads_peer_audit","ads_qa_review","nav_data","nav_data_peer_audit","pwr_recept","pwr_recept_peer_audit","elts","elts_peer_audit"] },
   { name: "ARL/STF/AIR",                         dept: "ARL/AIR/STF",       keys: ["htdom","htdom_peer_audit","occm","occm_dupes"] },
   { name: "Major Assemblies",                    dept: "Major Assemblies",  keys: ["e1_comp","e1_comp_peer_audit","e1_insp","e1_insp_peer_audit","e2_comp","e2_comp_peer_audit","e2_insp","e2_insp_peer_audit","apu_comp","apu_peer_audit","lmlg","lmlg_peer_audit","rmlg","rmlg_peer_audit","nlg","nlg_peer_audit"] },
-  { name: "Final Docs / Delivery Day",           dept: "ARL/AIR/STF",       keys: ["final_doc","final_arl","final_apu","final_eng","elt","swf","forecast","missing","air_times","eng_times","apu_times","purch_warranty"] },
+  { name: "Final Docs / Delivery Day",           dept: "ARL/AIR/STF",       keys: ["final_doc","final_arl","htdom_final_review","final_apu","final_eng","elt","swf","forecast","missing","air_times","eng_times","apu_times","purch_warranty"] },
   { name: "Upon Receipt of AW Cert",             dept: "ARL/AIR/STF",       keys: ["aw_cert","installed"] },
   { name: "Upon Receipt of Reg Cert",            dept: "ARL/AIR/STF",       keys: ["reg_cert"] },
   { name: "Aircraft Close Out",                  dept: "ARL/AIR/STF",       keys: ["aia_close","cpap"] },
@@ -710,6 +716,7 @@ const TL = {
   nlg:"NLG comp/insps", nlg_peer_audit:"NLG Comp/Insps Peer Audit",
   // Final docs
   final_doc:"Final Doc Download", final_arl:"Final ARL/AIR/STF AIA Import",
+  htdom_final_review:"Post Final Import HT/DOM Review",
   final_apu:"Final APU AIA Import", final_eng:"Final Engine AIA Imports",
   elt:"ELT/HEX review", swf:"SWF updates", forecast:"Forecast review", missing:"Missing/extra review",
   air_times:"Airframe times update", eng_times:"Engine times update",
@@ -726,7 +733,7 @@ const TL = {
 
 const DEPT_KEYS = {
   "Airframe":         ["setup","prelim","nonad","nonad_ntcs","nonad_insp","nonad_tasks","nonad_checks","nonad_peer_audit","ads","ads_peer_audit","ads_qa_review","nav_data","nav_data_peer_audit","pwr_recept","pwr_recept_peer_audit","elts","elts_peer_audit","elt","missing","airvault","baw"],
-  "ARL/AIR/STF":      ["arl_import","apu_import","eng_import","apu_ratio","apu_ratio_peer_audit","htdom","htdom_peer_audit","occm","occm_dupes","reg_cert","final_doc","final_arl","swf","forecast","aw_cert","installed","aia_close","cpap","air_times","purch_warranty"],
+  "ARL/AIR/STF":      ["arl_import","apu_import","eng_import","apu_ratio","apu_ratio_peer_audit","htdom","htdom_peer_audit","occm","occm_dupes","reg_cert","final_doc","final_arl","htdom_final_review","swf","forecast","aw_cert","installed","aia_close","cpap","air_times","purch_warranty"],
   "Major Assemblies": ["e1_comp","e1_comp_peer_audit","e1_insp","e1_insp_peer_audit","e2_comp","e2_comp_peer_audit","e2_insp","e2_insp_peer_audit","apu_comp","apu_peer_audit","lmlg","lmlg_peer_audit","rmlg","rmlg_peer_audit","nlg","nlg_peer_audit","final_apu","final_eng","eng_times","apu_times"]
 };
 
@@ -740,6 +747,7 @@ const TEAM_MEMBERS = [
   "Miguel Juarez","Rajashree Mohanty","Tara Klages"
 ];
 const FLEET_TYPES = ["737 MAX 8","737 MAX 9","A321neo","787-9 Hi-J","787-9","Neo PS","XLR"];
+const AIRBUS_FLEETS = new Set(["A321neo","Neo PS","XLR"]); // MSN field applies only to these
 const PEER_AUDIT_KEYS = new Set([
   "apu_ratio_peer_audit","nonad_peer_audit","ads_peer_audit","ads_qa_review",
   "htdom_peer_audit",
@@ -782,8 +790,10 @@ const ARL_TRIGGER_PREREQS = new Set(['setup','prelim','arl_import','apu_import',
 
 // Tasks unlocked when arl_import is marked Done (everything except peer audits, which have their own trigger)
 const ARL_TRIGGER_UNLOCKS = new Set(
-  ALL_KEYS.filter(k => !ARL_TRIGGER_PREREQS.has(k) && !PEER_AUDIT_KEYS.has(k))
+  ALL_KEYS.filter(k => !ARL_TRIGGER_PREREQS.has(k) && !PEER_AUDIT_KEYS.has(k) && k !== 'htdom_final_review')
 );
+// Post Final Import HT/DOM Review is gated on its own trigger (Final ARL/AIR/STF Import), not arl_import
+const FINAL_ARL_CHILD = 'htdom_final_review';
 const SEED = [
   {"ac":"7416","del":"2025-11-28","due":"2025-12-28","type":"737 MAX 9","tasks":{"setup":"done","prelim":"done","arl_import":"done","apu_import":"done","eng_import":"done","apu_ratio":"done","nonad":"done","ads":"done","htdom":"done","occm":"done","occm_dupes":"done","apu_comp":"done","lmlg":"done","rmlg":"done","nlg":"done","final_doc":"done","final_arl":"done","final_apu":"done","final_eng":"done","elt":"done","swf":"done","forecast":"done","missing":"done","aw_cert":"done","installed":"done","reg_cert":"done","aia_close":"inprogress","cpap":"inprogress","airvault":"done","baw":"inprogress||Colt Poole","ads_peer_audit":"done","htdom_peer_audit":"done","apu_peer_audit":"done","lmlg_peer_audit":"done","rmlg_peer_audit":"done","nlg_peer_audit":"done","nonad_peer_audit":"done","apu_ratio_peer_audit":"done","ads_qa_review":"done","air_times":"done","eng_times":"done","apu_times":"done","purch_warranty":"done","e1_comp_peer_audit":"done","e1_insp_peer_audit":"done","e2_comp_peer_audit":"done","e2_insp_peer_audit":"done","e1_comp":"done","e1_insp":"done","e2_comp":"done","e2_insp":"done","nav_data_peer_audit":"done","pwr_recept_peer_audit":"done","nav_data":"done","pwr_recept":"done","elts_peer_audit":"done","elts":"done","nonad_ntcs":"done","nonad_insp":"done","nonad_tasks":"done","nonad_checks":"done"}},
   {"ac":"7417","del":"2025-12-05","due":"2026-01-05","type":"737 MAX 9","tasks":{"setup":"done","prelim":"done","arl_import":"done","apu_import":"done","eng_import":"done","apu_ratio":"done","nonad":"done","ads":"done","htdom":"done","occm":"done","occm_dupes":"done","apu_comp":"done","lmlg":"done","rmlg":"done","nlg":"done","final_doc":"done","final_arl":"done","final_apu":"done","final_eng":"done","elt":"done","swf":"done","forecast":"done","missing":"done","aw_cert":"done","installed":"done","reg_cert":"done","aia_close":"inprogress","cpap":"pending","airvault":"done","baw":"inprogress||Colt Poole","ads_peer_audit":"done","htdom_peer_audit":"done","apu_peer_audit":"done","lmlg_peer_audit":"done","rmlg_peer_audit":"done","nlg_peer_audit":"done","apu_ratio_peer_audit":"done","nonad_peer_audit":"done","ads_qa_review":"done","air_times":"done","eng_times":"done","apu_times":"done","purch_warranty":"done","e1_comp_peer_audit":"done","e1_insp_peer_audit":"done","e2_comp_peer_audit":"done","e2_insp_peer_audit":"done","e1_comp":"done","e1_insp":"done","e2_comp":"done","e2_insp":"done","nav_data_peer_audit":"done","pwr_recept_peer_audit":"done","nav_data":"done","pwr_recept":"done","elts_peer_audit":"done","elts":"done","nonad_ntcs":"done","nonad_insp":"done","nonad_tasks":"done","nonad_checks":"done"}},
@@ -967,9 +977,22 @@ async function load() {
       return { ...meta, tasks };
     });
     LOG = logRow ? (logRow.data || []) : [];
-    clearLocalBackup();
     _lastSyncTime = new Date().toISOString();
-    setSyncStatus('saved');
+
+    // Recover any locally-saved task changes that never confirmed a sync in a prior
+    // session (e.g. the server was unreachable, then the tab was reloaded once it was
+    // reachable again). Only changes newer than the server's copy are re-applied, so a
+    // more recent edit from another machine is never overwritten. If nothing needs
+    // recovering, clear the backup as before.
+    const recovered = applyLocalBackupToData(DATA);
+    if (recovered) {
+      setSyncStatus('saving');
+      toast('Restored unsynced changes');
+      flushSave();          // re-pushes the recovered changes; clears the backup on success
+    } else {
+      clearLocalBackup();
+      setSyncStatus('saved');
+    }
   } catch (err) {
     console.warn('Supabase load failed, using localStorage fallback:', err);
     try {
@@ -1206,15 +1229,23 @@ function getLocalBackup() {
 }
 
 function applyLocalBackupToData(data) {
-  // Replay all backed-up changes onto a data array, in order
+  // Replay backed-up task changes (in order) onto freshly loaded data, to recover
+  // edits that were saved locally but never confirmed a sync to the server. A change
+  // is re-applied ONLY if it is newer than the server's copy of that task, so a more
+  // recent edit made on another machine is never overwritten. Recovered changes are
+  // re-queued (marked dirty) so the next flush pushes them back up to the server.
   const log = getLocalBackup();
   if (!log.length) return false;
   let changed = false;
   log.forEach(entry => {
+    if (!entry || !entry.ac || !entry.k) return;
     const a = data.find(r => r.ac === entry.ac);
-    if (!a) return;
+    if (!a || !a.tasks) return;
+    const serverTs = _taskUpdatedAt[`${entry.ac}|${entry.k}`];
+    if (serverTs && entry.ts && entry.ts <= serverTs) return; // server copy is same or newer — keep it
     if (a.tasks[entry.k] !== entry.v) {
       a.tasks[entry.k] = entry.v;
+      markTaskDirty(entry.ac, entry.k);
       changed = true;
     }
   });
@@ -1310,7 +1341,7 @@ function updateTaskViewRow(selectEl, acNum, taskKey, ns) {
     const badgeDiv = gridRow.children[4];
     if (badgeDiv) {
       badgeDiv.innerHTML = ns === 'done'
-        ? `<span class="badge bg">✓ Done</span>`
+        ? `<span class="badge bg">✓ Completed</span>`
         : ns === 'inprogress' ? `<span class="badge bb">🔄 In progress</span>`
         : ns === 'notready' ? `<span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db">🔒 Not Ready</span>`
         : `<span class="badge ba">⏳ Pending</span>`;
@@ -1459,7 +1490,7 @@ function render() {
     // If specific task filters also active — intersect assignee + task + status
     if (taskFilters.length > 0) {
       const statusLabel = globalTaskStatusFilters.length
-        ? ` — ${globalTaskStatusFilters.map(f => f==='done'?'Done':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ')}`
+        ? ` — ${globalTaskStatusFilters.map(f => f==='done'?'Completed':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ')}`
         : '';
       const nameLabel = realAssignees.length === 1 ? realAssignees[0] : `${realAssignees.length} assignees`;
       const taskNames = taskFilters.map(k => TL[k] || k);
@@ -1469,7 +1500,7 @@ function render() {
     }
     // Assignee + optional global status
     const statusLabel = globalTaskStatusFilters.length
-      ? ` — ${globalTaskStatusFilters.map(f => f==='done'?'Done':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ')}`
+      ? ` — ${globalTaskStatusFilters.map(f => f==='done'?'Completed':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ')}`
       : '';
     const nameLabel = realAssignees.length === 1 ? realAssignees[0] : `${realAssignees.length} assignees`;
     if (hint) hint.textContent = `Showing tasks assigned to ${nameLabel}${statusLabel}`;
@@ -1524,7 +1555,7 @@ function render() {
   // ── Global task status view — show expanded tasks matching the status ──
   if (globalTaskStatusFilters.length > 0 && taskFilters.length === 0) {
     const statusLabel = globalTaskStatusFilters.map(f =>
-      f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Done':'Not Ready'
+      f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Completed':'Not Ready'
     ).join(' + ');
     if (hint) hint.textContent = `Showing ${sortedList.length} aircraft with tasks: ${statusLabel}`;
     if (!sortedList.length) {
@@ -1539,7 +1570,7 @@ function render() {
   if (taskFilters.length > 0) {
     const taskNames = taskFilters.map(k => TL[k] || k);
     const statusLabel = globalTaskStatusFilters.length === 0 ? 'any status'
-      : globalTaskStatusFilters.map(f => f==='done'?'Done':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ');
+      : globalTaskStatusFilters.map(f => f==='done'?'Completed':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready').join(' + ');
     if (hint) hint.textContent = `Showing ${sortedList.length} aircraft · ${taskFilters.length === 1 ? `"${taskNames[0]}"` : `${taskFilters.length} tasks`} — ${statusLabel}`;
     if (!sortedList.length) {
       el.innerHTML = `<div class="empty">No aircraft match the selected filters.</div>`;
@@ -1555,7 +1586,7 @@ function render() {
 
   // ── Completion feed view ──
   if ((fsort === 'comp-desc' || fsort === 'comp-asc') && !fa && !taskFilters.length) {
-    if (hint) hint.textContent = `Done date: ${fsort === 'comp-desc' ? 'Newest first' : 'Oldest first'} — completed task feed`;
+    if (hint) hint.textContent = `Date Completed: ${fsort === 'comp-desc' ? 'Newest first' : 'Oldest first'} — completed task feed`;
     renderCompletionView(fsort, mainStatusFilters, fleetFilters, fx);
     return;
   }
@@ -1611,7 +1642,7 @@ function renderMultiTaskView(taskKeys, taskStatusFilters, list) {
           ${m}</label>`;
       }).join('');
       const assigneeDisplay = assignees ? assignees.replace(/,/g,', ') : 'Assign…';
-      const badge = s==='done' ? `<span class="badge bg">✓ Done</span>`
+      const badge = s==='done' ? `<span class="badge bg">✓ Completed</span>`
         : s==='inprogress' ? `<span class="badge bb">🔄 In progress</span>`
         : s==='notready' ? `<span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db">🔒 Not Ready</span>`
         : `<span class="badge ba">⏳ Pending</span>`;
@@ -1625,7 +1656,7 @@ function renderMultiTaskView(taskKeys, taskStatusFilters, list) {
         <div class="av-task-line2" onclick="event.stopPropagation()">
           <select class="av-status-sel"
             onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-            <option value="done" ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done" ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending" ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready" ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -1706,7 +1737,7 @@ function renderSearchStatusView(searchTerm, statusFilters, list) {
       const tc = TASK_COLORS[k] || 'airframe';
       const taskColor = tc==='airframe'?'#1e40af':tc==='arl'?'#9a3412':'#166534';
       const badge = s==='done'
-        ? `<span class="badge bg">✓ Done</span>`
+        ? `<span class="badge bg">✓ Completed</span>`
         : s==='inprogress' ? `<span class="badge bb">🔄 In progress</span>`
         : s==='notready' ? `<span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db">🔒 Not Ready</span>`
         : `<span class="badge ba">⏳ Pending</span>`;
@@ -1733,7 +1764,7 @@ function renderSearchStatusView(searchTerm, statusFilters, list) {
           <select style="font-size:11px;padding:3px 6px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);font-family:inherit;cursor:pointer"
             onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)"
             onclick="event.stopPropagation()">
-            <option value="done"       ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done"       ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending"    ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready"   ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -1816,7 +1847,7 @@ function renderTaskView(taskKey, taskStatusFilter, list, sortMode) {
 
     // Status badge
     const badge = s === 'done'
-      ? `<span class="badge bg">✓ Done</span>`
+      ? `<span class="badge bg">✓ Completed</span>`
       : s === 'inprogress'
       ? `<span class="badge bb">🔄 In progress</span>`
       : s === 'notready'
@@ -1868,7 +1899,7 @@ function renderTaskView(taskKey, taskStatusFilter, list, sortMode) {
           <select style="font-size:11px;padding:3px 6px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);font-family:inherit;cursor:pointer"
             onchange="updState('${a.ac}','${taskKey}',this.value); updateTaskViewRow(this,'${a.ac}','${taskKey}',this.value)"
             onclick="event.stopPropagation()">
-            <option value="done"       ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done"       ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending"    ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready"   ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -1892,7 +1923,7 @@ function renderTaskView(taskKey, taskStatusFilter, list, sortMode) {
         <input type="text" value="${n.replace(/"/g,'&quot;')}" placeholder="Note…"
           oninput="updNote('${a.ac}','${taskKey}',this.value)"
           style="flex:1;font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;color:var(--text);background:var(--surface)">
-        ${s === 'done' ? `<span style="font-size:11px;font-weight:600;color:var(--text2);margin-left:4px;white-space:nowrap">Done date:</span>
+        ${s === 'done' ? `<span style="font-size:11px;font-weight:600;color:var(--text2);margin-left:4px;white-space:nowrap">Date Completed:</span>
         <input type="date" value="${doneDate||''}" title="Edit completion date"
           onchange="updDoneDate('${a.ac}','${taskKey}',this.value); softRender()"
           style="font-size:11px;padding:2px 6px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;color:var(--text);background:var(--surface);cursor:pointer">` : ''}
@@ -2023,7 +2054,7 @@ function renderAssigneeView(assignee, mainStatusFilters, fleetFilters, fx, taskS
         </div>
         <div class="av-task-line2">
           <select class="av-status-sel" onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-            <option value="done"       ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done"       ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending"    ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready"   ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -2165,7 +2196,7 @@ function renderCompletionView(fsort, mainStatusFilters, fleetFilters, fx) {
       </div>
       <div class="av-task-line2">
         <select class="av-status-sel" onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-          <option value="done" selected>✓ Done</option>
+          <option value="done" selected>✓ Completed</option>
           <option value="inprogress">🔄 In progress</option>
           <option value="pending">⏳ Pending</option>
           <option value="notready">🔒 Not Ready</option>
@@ -2255,7 +2286,7 @@ function renderGlobalTaskStatusView(list, statusFilters) {
         </div>
         <div class="av-task-line2" onclick="event.stopPropagation()">
           <select class="av-status-sel" onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-            <option value="done" ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done" ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending" ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready" ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -2396,7 +2427,7 @@ function renderAssigneeTaskIntersectView(assignees, taskKeys, taskStatusFilters,
         </div>
         <div class="av-task-line2" onclick="event.stopPropagation()">
           <select class="av-status-sel" onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-            <option value="done" ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done" ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending" ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready" ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -2526,7 +2557,7 @@ function renderMultiAssigneeView(assignees, mainStatusFilters, fleetFilters, fx,
         </div>
         <div class="av-task-line2">
           <select class="av-status-sel" onchange="updState('${a.ac}','${k}',this.value); updateFilteredTaskRow(this,'${a.ac}','${k}',this.value)">
-            <option value="done" ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done" ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending" ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="notready" ${s==='notready'?'selected':''}>🔒 Not Ready</option>
@@ -2710,14 +2741,14 @@ function buildCard(a) {
         ? `<select class="task-sel snr"
             onchange="updState('${a.ac}','${k}',this.value); this.className='task-sel s'+this.value[0]">
             <option value="notready" selected>🔒 Not Ready</option>
-            <option value="done">✓ Done</option>
+            <option value="done">✓ Completed</option>
             <option value="inprogress">🔄 In progress</option>
             <option value="pending">⏳ Pending</option>
             <option value="na">— N/A</option>
            </select>`
         : `<select class="task-sel ${sc}"
             onchange="updState('${a.ac}','${k}',this.value); this.className='task-sel s'+this.value[0]">
-            <option value="done"       ${s==='done'?'selected':''}>✓ Done</option>
+            <option value="done"       ${s==='done'?'selected':''}>✓ Completed</option>
             <option value="inprogress" ${s==='inprogress'?'selected':''}>🔄 In progress</option>
             <option value="pending"    ${s==='pending'?'selected':''}>⏳ Pending</option>
             <option value="na"         ${s==='na'?'selected':''}>— N/A</option>
@@ -2780,10 +2811,13 @@ function buildCard(a) {
       <div>
         <div class="ac-num">${a.ac}</div>
         <div class="ac-type">${a.type || ''}</div>
+        ${AIRBUS_FLEETS.has(a.type) ? `<div style="font-size:11px;margin-top:3px"><span style="color:var(--text3)">MSN </span><span style="color:${a.msn?'var(--text)':'var(--text3)'};${a.msn?'font-weight:600':''}">${a.msn ? String(a.msn).replace(/&/g,'&amp;').replace(/</g,'&lt;') : '—'}</span></div>` : ''}
       </div>
       <div class="due-lbl">
         <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px">Del&nbsp;/&nbsp;Due</div>
         <div style="font-size:11px;${st==='overdue'?'color:var(--red);font-weight:600':''}">${fmtD(a.del)} <span style="color:var(--text3)">→</span> ${fmtD(a.due)}</div>
+        ${a.flyaway ? `<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:4px">Flyaway</div>
+        <div style="font-size:11px;color:var(--text)">${fmtD(a.flyaway)}</div>` : ''}
       </div>
       <div class="pbar-wrap">
         <div class="pbar"><div class="pfill ${pf}" style="width:${p}%"></div></div>
@@ -2820,8 +2854,20 @@ function buildCard(a) {
           <input type="text" value="${a.due||'TBD'}" readonly
             style="font-size:12px;padding:3px 7px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text2);font-family:inherit;width:110px">
         </div>
+        <div class="meta-field">
+          <label>Flyaway Date:</label>
+          <input type="date" value="${a.flyaway||''}"
+            onchange="updField('${a.ac}','flyaway',this.value)"
+            style="font-size:12px;padding:3px 7px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);font-family:inherit;width:130px">
+        </div>
+        ${AIRBUS_FLEETS.has(a.type) ? `<div class="meta-field">
+          <label>MSN:</label>
+          <input type="text" value="${(a.msn||'').replace(/"/g,'&quot;')}" placeholder="e.g. 11024"
+            onchange="updField('${a.ac}','msn',this.value)"
+            style="font-size:12px;padding:3px 7px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);font-family:inherit;width:120px">
+        </div>` : ''}
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--text2)">
-          <span><span style="color:var(--green);font-weight:700">✓</span> Done</span>
+          <span><span style="color:var(--green);font-weight:700">✓</span> Completed</span>
           <span><span style="color:var(--amber)">⏳</span> Pending</span>
           <span style="color:var(--text3)">— N/A</span>
         </div>
@@ -2829,7 +2875,7 @@ function buildCard(a) {
           <option value="">All tasks</option>
           <option value="pending">⏳ Pending only</option>
           <option value="inprogress">🔄 In progress only</option>
-          <option value="done">✓ Done only</option>
+          <option value="done">✓ Completed only</option>
           <option value="notready">🔒 Not Ready only</option>
           <option value="open">All open</option>
         </select>
@@ -2895,7 +2941,7 @@ function renderChips() {
 
   // Global task status filter chips
   getGlobalTaskStatusFilters().forEach(f => {
-    const label = f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Done':'Not Ready';
+    const label = f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Completed':'Not Ready';
     chips.push({ label: `Status: ${label}`, remove: () => {
       const cb = document.querySelector(`#sb-global-task-status-panel input[value="${f}"]`);
       if (cb) cb.checked = false;
@@ -2925,7 +2971,7 @@ function renderChips() {
 
   // Search status multi-filter
   getSearchStatusFilters().forEach(f => {
-    const label = f==='open'?'All Open':f==='done'?'Done':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready';
+    const label = f==='open'?'All Open':f==='done'?'Completed':f==='inprogress'?'In Progress':f==='pending'?'Pending':'Not Ready';
     chips.push({ label: `Status: ${label}`, remove: () => {
       const inp = document.querySelector(`#f-search-status-dd input[value="${f}"]`);
       if (inp) inp.checked = false;
@@ -3073,7 +3119,7 @@ function updateGlobalTaskStatusLabel() {
     lbl.textContent = 'Any status'; btn.classList.remove('active');
   } else {
     const labels = selected.map(f =>
-      f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Done':'Not Ready'
+      f==='inprogress'?'In Progress':f==='pending'?'Pending':f==='done'?'Completed':'Not Ready'
     );
     lbl.textContent = labels.join(' + '); btn.classList.add('active');
   }
@@ -3530,6 +3576,17 @@ function applyTriggerStates(aircraft) {
       const cur = ts(a.tasks[pk] || 'pending');
       if (!parentDone && cur === 'pending') a.tasks[pk] = 'notready';
     });
+
+    // Post Final Import HT/DOM Review: notready unless Final ARL/AIR/STF Import is done.
+    // Only reconcile if the task already exists — the one-time migration seeds its
+    // initial state (including auto-complete for pre-cutoff aircraft).
+    if (FINAL_ARL_CHILD in a.tasks) {
+      const finalArlDone = ts(a.tasks['final_arl'] || 'pending') === 'done';
+      const cur = ts(a.tasks[FINAL_ARL_CHILD]);
+      if (!finalArlDone && cur === 'pending') {
+        a.tasks[FINAL_ARL_CHILD] = packTask('notready', tn(a.tasks[FINAL_ARL_CHILD]), ta(a.tasks[FINAL_ARL_CHILD]));
+      }
+    }
   });
   return aircraft;
 }
@@ -3586,6 +3643,18 @@ function updState(acNum, k, ns) {
       });
     }
     needsFullRender = true;
+  }
+
+  // ── Final ARL import trigger: unlocks Post Final Import HT/DOM Review when done ──
+  if (k === 'final_arl') {
+    const cur = ts(a.tasks[FINAL_ARL_CHILD] || 'notready');
+    if (ns === 'done' && (cur === 'notready' || cur === 'pending')) {
+      a.tasks[FINAL_ARL_CHILD] = packTask('pending', tn(a.tasks[FINAL_ARL_CHILD]||''), ta(a.tasks[FINAL_ARL_CHILD]||''));
+      needsFullRender = true;
+    } else if (ns !== 'done' && cur === 'pending') {
+      a.tasks[FINAL_ARL_CHILD] = packTask('notready', tn(a.tasks[FINAL_ARL_CHILD]||''), ta(a.tasks[FINAL_ARL_CHILD]||''));
+      needsFullRender = true;
+    }
   }
 
   // ── Peer audit trigger: unlocks ALL peer audits whose parent task is this task ──
@@ -3887,6 +3956,12 @@ function updateAddDue() {
   document.getElementById('n-due').value = due.toISOString().slice(0, 10);
 }
 
+// Show the MSN field in the Add modal only for Airbus fleets (neo / PS / XLR)
+function toggleAddMsnField() {
+  const t = document.getElementById('n-type').value;
+  document.getElementById('n-msn-field').style.display = AIRBUS_FLEETS.has(t) ? 'flex' : 'none';
+}
+
 function addAC() {
   const ac = document.getElementById('n-ac').value.trim();
   if (!ac) { alert('Tail # is required.'); return; }
@@ -3896,12 +3971,14 @@ function addAC() {
   const mode = document.getElementById('n-del-mode').value;
   const del = mode === 'TBD' ? 'TBD' : (document.getElementById('n-del').value || 'TBD');
   const due = document.getElementById('n-due').value || 'TBD';
+  const flyaway = document.getElementById('n-flyaway').value || '';
+  const msn = AIRBUS_FLEETS.has(type) ? (document.getElementById('n-msn').value.trim() || '') : '';
   const tasks = {};
   // All tasks start as Not Ready
   ALL_KEYS.forEach(k => tasks[k] = 'notready');
   // Only setup is immediately available
   tasks['setup'] = 'pending';
-  DATA.push({ ac, type, del, due, tasks });
+  DATA.push({ ac, type, del, due, flyaway, msn, tasks });
   logEntry(ac, null, 'added', '');
   markDirty(ac);                                   // writes aircraft metadata blob
   Object.keys(tasks).forEach(k => markTaskDirty(ac, k)); // writes each task row to tasks table
@@ -4107,7 +4184,7 @@ function exportExcel(mode) {
     function buildChannelSheet(dept, hdrBg, rowBg, completedMode) {
       const rows=[];
       const label = dept==='ARL/AIR/STF'?'ARL / AIR / STF':dept;
-      const title=(completedMode?'COMPLETED - ':(isOverdueMode?'!! OVERDUE - ':''))+label+(completedMode?' Done Tasks - ':' Pending Tasks - ')+dateStr;
+      const title=(completedMode?'COMPLETED - ':(isOverdueMode?'!! OVERDUE - ':''))+label+(completedMode?' Completed Tasks - ':' Pending Tasks - ')+dateStr;
       rows.push({h:26,cells:[{v:title,t:'s',s:styleTitle(hdrBg,'FFFFFFFF',12),merge:{ec:6}}]});
 
       const matches = (a,k)=>{const s=ts(a.tasks[k]||'notready');return completedMode?s==='done':(s!=='done'&&s!=='na');};
@@ -4145,7 +4222,7 @@ function exportExcel(mode) {
           const taskFg=s==='done'?'FF2B8A3E':isOv?RED_FG:'FFB45309';
           const nameFg=s==='done'?'FF2B8A3E':isOv?RED_FG:'FF111827';
           const noteFg=s==='done'?'FF6B9E6B':isOv?RED_FG:'FF4B5563';
-          const taskStatusLbl = s==='done'?'Done':s==='notready'?'Not Ready':s==='inprogress'?'In Progress':'Pending';
+          const taskStatusLbl = s==='done'?'Completed':s==='notready'?'Not Ready':s==='inprogress'?'In Progress':'Pending';
           const taskStatusFg = s==='done'?'FF2B8A3E':s==='notready'?'FF6B7280':taskFg;
           const completedVal = s==='done'&&doneDate ? fmtD(doneDate) : '—';
           rows.push({h:18,cells:[
@@ -4186,11 +4263,11 @@ function exportExcel(mode) {
     // Full report also includes Completed (Done) task sheets per channel
     if (!isOverdueMode) {
       sheetsData.push(
-        {name:'Airframe Done',    rows:buildChannelSheet('Airframe',HDR_AIR,AIR_BG,true),
+        {name:'Airframe Completed',    rows:buildChannelSheet('Airframe',HDR_AIR,AIR_BG,true),
          cols:[9,13,12,12,32,22,26,14]},
-        {name:'ARL-AIR-STF Done', rows:buildChannelSheet('ARL/AIR/STF','FFCA8A04',ARL_BG,true),
+        {name:'ARL-AIR-STF Completed', rows:buildChannelSheet('ARL/AIR/STF','FFCA8A04',ARL_BG,true),
          cols:[9,13,12,12,32,22,26,14]},
-        {name:'Maj Assy Done',    rows:buildChannelSheet('Major Assemblies',HDR_MAJ,MAJ_BG,true),
+        {name:'Maj Assy Completed',    rows:buildChannelSheet('Major Assemblies',HDR_MAJ,MAJ_BG,true),
          cols:[9,13,12,12,32,22,26,14]}
       );
     }
@@ -4734,6 +4811,32 @@ function applyV6Migrations(aircraft) {
   return changed;
 }
 
+// ── ONE-TIME MIGRATION: add Post Final Import HT/DOM Review ────────────────────
+// Triggered by Final ARL/AIR/STF Import. Aircraft delivered before the cutoff were
+// already worked, so the task is auto-marked completed for them; recent and future
+// inductions get a live task that unlocks once Final ARL import is marked completed.
+const HTDOM_REVIEW_CUTOFF = '2026-07-16'; // delivery BEFORE this date -> auto-completed
+function applyPostFinalHtdomReview(aircraft) {
+  let changed = false;
+  aircraft.forEach(a => {
+    if (!a.tasks) return;
+    const k = 'htdom_final_review';
+    if (k in a.tasks) return; // preserve real state once the task exists
+    const del = a.del;
+    const realDel = del && del !== 'TBD' && del !== 'MAR-TBD';
+    const finalArlDone = ts(a.tasks['final_arl'] || 'notready') === 'done';
+    if (realDel && del < HTDOM_REVIEW_CUTOFF) {
+      a.tasks[k] = 'done';         // delivered before cutoff -> already completed
+    } else if (finalArlDone) {
+      a.tasks[k] = 'pending';      // trigger already satisfied -> available now
+    } else {
+      a.tasks[k] = 'notready';     // gated until Final ARL/AIR/STF Import is done
+    }
+    changed = true;
+  });
+  return changed;
+}
+
 async function init() {
   try {
     await load();
@@ -4744,7 +4847,8 @@ async function init() {
     const migrated3 = applyE1E2Split(DATA);
     const migrated4 = applyNewAirframeTasks(DATA);
     const migrated5 = applyV6Migrations(DATA);
-    if (migrated1 || migrated2 || migrated3 || migrated4 || migrated5) {
+    const migrated6 = applyPostFinalHtdomReview(DATA);
+    if (migrated1 || migrated2 || migrated3 || migrated4 || migrated5 || migrated6) {
       // A real schema migration changed data on load. Persist every row, but do
       // it through the dirty-set + flushSave path so it goes through the same
       // single, controlled write (migrations are normally no-ops in production).
